@@ -5,9 +5,10 @@
 # _/_/_/_/      _/    _/_/_/    _/_/_/     
 
 # Exploratory Data Analysis of Gestation data
-
+remotes::install_github("tidymodels/corrr")
 library(tidyverse)
 library(mosaicData)
+library(corrr)
 # if you don't have mosaicData, install it
 
 data(Gestation)
@@ -21,26 +22,32 @@ count(Gestation)
 count(Gestation, race)
 
 # number of observations by racial group and level of mother's education
-Gestation_n_race_ed <- count(Gestation, ...)
+Gestation_n_race_ed <- count(Gestation, Education = ed)
 
 
 # Activity 2 - Further summary statistics
-
+summarise(Gestation, Mom_age_mean = mean((age), na.rm = TRUE))
 # mean age of mothers across all births
 # ensure you use a human friendly name for the value you're creating
 
 # calculate both mothers' mean age and babies' mean weight
-summarise(Gestation, 
-          `Mean age` = ...,
-          `Mean wt`  = ...)
-
+summarise_at(Gestation, 
+          .vars = vars(age, wt),
+          .funs = mean, na.rm =  T)
 
 # Activity 3 - Grouped summaries
 
 # make a new data frame containing only id, age and race variables
+gest_race_age <- Gestation %>% select(
+                      id,
+                      Race = race,
+                      Mom_age = age,
+                      wt)
 
 # calculate the mean age by race
-
+gest_race_age %>% 
+  group_by(Race) %>% 
+  summarise(mean((Mom_age), na.rm = TRUE))
 
 # Activity 4 - Extensions
 
@@ -48,9 +55,17 @@ summarise(Gestation,
 # Activity 4a - Correlation
 
 # Calculate the correlation between age and weight across all births
+age_wt_cor <- Gestation %>% 
+  select(Mom_age = age, Weight = wt) %>% 
+  correlate()
+age_wt_cor
 
 # Calculate the correlation between age and weight for each race group
-
+gest_race_age %>% 
+  group_by(Race) %>% 
+  select(Mom_age, Weight = wt) %>% 
+  summarise(cor = cor(Mom_age, Weight, use = 'complete.obs'))
+  
 
 # Activity 4b - Multiple summary statistics
 
